@@ -1,0 +1,13 @@
+detect_object_task:
+    description: >
+      Analyze the uploaded image and identify the primary object within it.
+      Provide the object name, category, and any visible distinguishing features.
+      IMPORTANT: Use the EXACT image path that was provided to you as input. 
+      DO NOT create a placeholder path or generate a fake filename.
+      The input value contains the actual path to the image file.
+    agent: object_detection_agent
+    expected_output:
+      - object_name: string
+      - object_category: string
+      - distinguishing_features: list[string]
+    depends_on: []
