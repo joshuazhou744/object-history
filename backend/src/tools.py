@@ -27,9 +27,9 @@ class ObjectDetectionTool:
         try:
             # Handle case when no input is provided
             if image_input is None or image_input == '':
-                # Try to use a default test image
-                image_input = os.path.join(os.path.dirname(__file__), "test.jpg")
-                print(f"Using default image: {image_input}")
+                # Use the direct URL to the hammer image
+                image_input = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/U7sAx8ZP1dn8HpOcMO_wcg/test.jpg"
+                print(f"Using default image URL: {image_input}")
                 
             if isinstance(image_input, dict):
                 # Try to get the actual path from various potential formats
@@ -42,7 +42,7 @@ class ObjectDetectionTool:
                     # Just use the first value
                     image_input = list(image_input.values())[0]
                     
-            print(f"Using image path: {image_input}")  # Debug print
+            print(f"Using image path/URL: {image_input}")  # Debug print
                 
             if image_input.startswith("http"):
                 response = requests.get(image_input)

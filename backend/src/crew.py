@@ -57,7 +57,7 @@ class BaseObjectAnalysisCrew:
 
         # Add the image path to the task description to force the agent to use it
         task_description = task_config["description"] + f"\nUse this EXACT image path: {self.image_path}"
-            
+
         return Task(
             description=task_description,
             agent=self.object_detection_agent(),
