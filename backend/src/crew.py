@@ -17,7 +17,7 @@ class BaseObjectAnalysisCrew:
 
     def __init__(self, image_data: str):
         # Convert to absolute path if it's a relative path
-        self.image_path = os.path.abspath(image_data)
+        self.image_path = image_data
         print(f"Using image path: {self.image_path}")  # Debug print
 
         with open(self.agents_config_path, "r") as f:
