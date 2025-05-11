@@ -30,17 +30,6 @@ class ObjectDetectionTool:
                 # Use the direct URL to the hammer image
                 image_input = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/U7sAx8ZP1dn8HpOcMO_wcg/test.jpg"
                 print(f"Using default image URL: {image_input}")
-                
-            if isinstance(image_input, dict):
-                # Try to get the actual path from various potential formats
-                if "image_input" in image_input:
-                    image_input = image_input["image_input"]
-                elif "name" in image_input and image_input["name"] == "image_input":
-                    # This might be the format CrewAI is using
-                    raise ValueError("Tool received metadata instead of actual image path")
-                else:
-                    # Just use the first value
-                    image_input = list(image_input.values())[0]
                     
             print(f"Using image path/URL: {image_input}")  # Debug print
                 
@@ -57,18 +46,45 @@ class ObjectDetectionTool:
             encoded_image = base64.b64encode(image_bytes.read()).decode("utf-8")
 
             client = OpenAI()
-            response = client.responses.create(
-                model="gpt-4.1-nano",
-                input=[   
-                    {"role": "user", "content": f"Analyze this image and identify the primary object within it. Provide the object name, category, and any distinguishing features. Return the response in JSON format with fields: object_name, object_category, and distinguishing_features. Image: {encoded_image}"}         
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    "Analyze this image and identify the primary object within it. "
+                                    "Provide the object name, category, and any distinguishing features. "
+                                    "Return the response in JSON format with fields: "
+                                    "object_name, object_category, and distinguishing_features."
+                                )
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{encoded_image}"
+                                }
+                            }
+                        ]
+                    }
                 ]
             )
             
-            # Parse the response from the correct structure
-            content_text = response.output[0].content[0].text
-            content_text = content_text.replace('```json\n', '').replace('\n```', '')
-            result = json.loads(content_text)
-            print(f"API result: {result}")
+            # Get the content from the response
+            content = response.choices[0].message.content
+            
+            # Clean up the content string by removing markdown code block markers
+            content = content.replace('```json\n', '').replace('\n```', '')
+            
+            # Parse the JSON string into a Python dictionary
+            result = json.loads(content)
+            print(f"Parsed result: {result}")
+            
+            # Convert distinguishing_features to a list if it's a string
+            if isinstance(result.get('distinguishing_features'), str):
+                result['distinguishing_features'] = [result['distinguishing_features']]
             
             return {
                 "object_name": result.get("object_name", "unknown"),

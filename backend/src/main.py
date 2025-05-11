@@ -30,22 +30,8 @@ def analyze_object(image_data: str):
 
 if __name__ == "__main__":
     # Use absolute path for testing
-    test_image = os.path.join(os.path.dirname(__file__), "test.jpg")
+    test_image = "test.jpg"
     print(f"\n=== Test Setup ===")
     print(f"Test image path: {test_image}")
-    print(f"Test image exists: {os.path.exists(test_image)}")
-    
-    # Create the test image if it doesn't exist
-    if not os.path.exists(test_image):
-        print(f"\n=== Creating Test Image ===")
-        try:
-            from PIL import Image
-            img = Image.new('RGB', (100, 100), color = (73, 109, 137))
-            img.save(test_image)
-            print(f"Created test image at: {test_image}")
-            print(f"Verification - File exists: {os.path.exists(test_image)}")
-        except Exception as e:
-            print(f"Failed to create test image: {e}")
-            sys.exit(1)
     
     analyze_object(test_image)
