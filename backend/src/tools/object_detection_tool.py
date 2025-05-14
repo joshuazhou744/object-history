@@ -1,14 +1,12 @@
-import json
 import os
 import base64
 import requests
-from io import BytesIO
-from models import ObjectDetectionResult
-from langchain.tools import tool
-from PIL import Image
+import json
 
 from openai import OpenAI
 from dotenv import load_dotenv
+from io import BytesIO
+from langchain.tools import tool
 
 load_dotenv()
 
@@ -24,13 +22,7 @@ class ObjectDetectionTool:
         """
         print(f"Tool received input: {image_input}")  # Debug print
             
-        try:
-            # Handle case when no input is provided
-            if image_input is None or image_input == '':
-                # Use the direct URL to the hammer image
-                image_input = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/U7sAx8ZP1dn8HpOcMO_wcg/test.jpg"
-                print(f"Using default image URL: {image_input}")
-                    
+        try:        
             print(f"Using image path/URL: {image_input}")  # Debug print
                 
             if image_input.startswith("http"):
@@ -50,16 +42,33 @@ class ObjectDetectionTool:
                 model="gpt-4o",
                 messages=[
                     {
+                        "role": "system",
+                        "content": """You are a precise object detection system. You must respond with a valid JSON object containing exactly these fields:
+                        - object_name: string
+                        - object_category: string
+                        - distinguishing_features: array of strings
+                        
+                        Example format:
+                        {
+                            "object_name": "Hammer",
+                            "object_category": "Tool",
+                            "distinguishing_features": ["Metal head", "Wooden handle", "16 oz marking"]
+                        }
+                        
+                        Rules:
+                        1. Response must be ONLY the JSON object, no other text
+                        2. No markdown formatting or code blocks
+                        3. distinguishing_features must be an array of strings
+                        4. All fields are required
+                        5. No trailing commas
+                        6. Use double quotes for strings"""
+                    },
+                    {
                         "role": "user",
                         "content": [
                             {
                                 "type": "text",
-                                "text": (
-                                    "Analyze this image and identify the primary object within it. "
-                                    "Provide the object name, category, and any distinguishing features. "
-                                    "Return the response in JSON format with fields: "
-                                    "object_name, object_category, and distinguishing_features."
-                                )
+                                "text": "Analyze this image and identify the primary object within it. Return ONLY a JSON object with object_name, object_category, and distinguishing_features fields."
                             },
                             {
                                 "type": "image_url",
@@ -71,26 +80,27 @@ class ObjectDetectionTool:
                     }
                 ]
             )
-            
-            # Get the content from the response
+
             content = response.choices[0].message.content
+
+            print("\n=== Raw LLM Response ===")
+            print(f"Content type: {type(content)}")
+            print(f"Content: {repr(content)}")
+
+            content = content.strip()
+            if content.startswith('```json'):
+                content = content[7:]
+            if content.endswith('```'):
+                content = content[:-3]
+            content = content.strip()
             
-            # Clean up the content string by removing markdown code block markers
-            content = content.replace('```json\n', '').replace('\n```', '')
+            object_dict = json.loads(content)
             
-            # Parse the JSON string into a Python dictionary
-            result = json.loads(content)
-            print(f"Parsed result: {result}")
+            if isinstance(object_dict.get('distinguishing_features'), str):
+                object_dict['distinguishing_features'] = [object_dict['distinguishing_features']]
             
-            # Convert distinguishing_features to a list if it's a string
-            if isinstance(result.get('distinguishing_features'), str):
-                result['distinguishing_features'] = [result['distinguishing_features']]
-            
-            return {
-                "object_name": result.get("object_name", "unknown"),
-                "object_category": result.get("object_category", "unknown"),
-                "distinguishing_features": result.get("distinguishing_features", [])
-            }
+            return object_dict
+        
         except Exception as e:
             print(f"Error in object detection tool: {str(e)}")
             return {

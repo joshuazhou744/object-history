@@ -5,6 +5,13 @@ detect_object_task:
       IMPORTANT: Use the EXACT image path that was provided to you as input. 
       DO NOT create a placeholder path or generate a fake filename.
       The input value contains the actual path to the image file.
+      IMPORTANT: Return ONLY a JSON object with these exact fields:
+      {{
+          "object_name": "string",
+          "object_category": "string",
+          "distinguishing_features": ["string", "string", ...]
+      }}
+      Do not add any additional text or formatting.
     agent: object_detection_agent
     expected_output:
       - object_name: string

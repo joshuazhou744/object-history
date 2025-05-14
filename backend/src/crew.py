@@ -6,7 +6,7 @@ from pathlib import Path
 from crewai import Agent, Task, Crew, Process
 from crewai.project import CrewBase, agent, crew, task
 
-from tools import ObjectDetectionTool
+from tools.object_detection_tool import ObjectDetectionTool
 from models import ObjectDetectionResult
 
 
